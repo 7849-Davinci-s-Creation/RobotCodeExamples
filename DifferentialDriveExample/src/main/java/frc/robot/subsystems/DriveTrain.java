@@ -70,6 +70,7 @@ public class DriveTrain extends SubsystemBase {
     }
 
     // algorithm to apply curvature drive to our arcade drive
+    // thanks to this guide: https://compendium.readthedocs.io/en/latest/tasks/drivetrains/advancedtank.html
     public double applyCurve(double joystickPosition) {
         // first part of equation is the same so extract to variable.
         final double pt1 = (1 - Constants.TORQUE_RESISTANCE_THRESHOLD) * Math.pow(joystickPosition, 3);
