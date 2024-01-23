@@ -22,10 +22,11 @@ public class Drive extends CommandBase {
 
     @Override
     public void execute() {
-        double rotate = controller.getRawAxis(Constants.Controllers.JOYSTICKY);
-        double forwardBack =  controller.getRawAxis(Constants.Controllers.JOYSTICKZ);
+        // need to test this new driving code.
+        double rotate = driveTrain.deadZone(controller.getRawAxis(Constants.Controllers.JOYSTICKY), Constants.JOYSTICK_DEADZONE_ROTATE);
+        double forwardBack =  driveTrain.deadZone(controller.getRawAxis(Constants.Controllers.JOYSTICKZ), Constants.JOYSTICK_DEADZONE_DRIVE);
 
-        driveTrain.arcadeDrive(rotate / .9, forwardBack);
+        driveTrain.arcadeDrive(driveTrain.applyCurve(rotate / .9), driveTrain.applyCurve(forwardBack));
 
         // to test out other driving method comment out above and uncomment below
         // driveTrain.semiConstantCurvatureDrive(forwardBack, rotate);

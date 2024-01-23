@@ -68,6 +68,30 @@ public class DriveTrain extends SubsystemBase {
     public double ticks2Feet(double encoderPosition) {
         return encoderPosition * ((6*Math.PI)/71.4);
     }
+
+    // algorithm to apply curvature drive to our arcade drive
+    public double applyCurve(double joystickPosition) {
+        // first part of equation is the same so extract to variable.
+        final double pt1 = (1 - Constants.TORQUE_RESISTANCE_THRESHOLD) * Math.pow(joystickPosition, 3);
+
+        // piecewise logic
+        if (joystickPosition > 0) {
+            return  pt1 + Constants.TORQUE_RESISTANCE_THRESHOLD;
+        } else if (joystickPosition < 0) {
+            return pt1 - Constants.TORQUE_RESISTANCE_THRESHOLD;
+        } 
+
+        // else joystick position is 0 so return 0.
+        return 0;
+    }
+
+    // algorithm for handling joystick drift by a deadzone implementation
+    public double deadZone(double value, double deadZone) {
+        if (Math.abs(value) < deadZone) {
+            return 0;
+        }
+        return value;
+    }
     
     @Override
     public void periodic() {
