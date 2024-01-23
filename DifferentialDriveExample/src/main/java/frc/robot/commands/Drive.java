@@ -26,7 +26,7 @@ public class Drive extends CommandBase {
         double rotate = driveTrain.deadZone(controller.getRawAxis(Constants.Controllers.JOYSTICKY), Constants.JOYSTICK_DEADZONE_ROTATE);
         double forwardBack =  driveTrain.deadZone(controller.getRawAxis(Constants.Controllers.JOYSTICKZ), Constants.JOYSTICK_DEADZONE_DRIVE);
 
-        driveTrain.arcadeDrive(driveTrain.applyCurve(rotate / .9), driveTrain.applyCurve(forwardBack));
+        driveTrain.arcadeDrive(driveTrain.applyCurve(rotate / Constants.MOVEMENT_NERF), driveTrain.applyCurve(forwardBack));
 
         // to test out other driving method comment out above and uncomment below
         // driveTrain.semiConstantCurvatureDrive(forwardBack, rotate);
