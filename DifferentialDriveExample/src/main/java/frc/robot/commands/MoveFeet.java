@@ -9,7 +9,7 @@ public class MoveFeet extends CommandBase {
     private final double feet;
     private final double kP = 0.0811;
     // do not set this to 100 or i will steal your milkshake
-    private final double kI = 0.0001;
+    private final double kI = 0.0002;
     private final double iLimit = 1;
     double errorSum = 0;
     double lastTimestamp = 0;

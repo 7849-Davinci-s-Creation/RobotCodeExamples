@@ -27,5 +27,5 @@ public final class Constants {
     public static final double JOYSTICK_DEADZONE_DRIVE = 0.01F;
     public static final double JOYSTICK_DEADZONE_ROTATE = 0.01F;
 
-    public static final double MOVEMENT_NERF = 0.9F;
+    public static final double MOVEMENT_NERF = 1.5F;
 }
