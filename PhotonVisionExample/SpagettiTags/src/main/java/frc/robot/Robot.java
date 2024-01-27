@@ -46,7 +46,7 @@ public class Robot extends TimedRobot {
     // Angle between horizontal and the camera.
 
     final double CAMERA_PITCH_RADIANS = Units.degreesToRadians(23);
-     final double GOAL_RANGE_METERS = Units.feetToMeters(0.5);
+    final double GOAL_RANGE_METERS = Units.feetToMeters(1);
 
 
     // Change this to match the name of your camera
@@ -163,6 +163,17 @@ public class Robot extends TimedRobot {
           //       // -1.0 required to ensure positive PID controller effort _increases_ yaw
 
           rotateSpeed = -turnController.calculate(result.getBestTarget().getYaw(), 0);
+          
+          double range = PhotonUtils.calculateDistanceToTargetMeters(
+
+                  CAMERA_HEIGHT_METERS,
+
+                  TARGET_HEIGHT_METERS,
+
+                  CAMERA_PITCH_RADIANS,
+
+                  Units.degreesToRadians(result.getBestTarget().getPitch()));
+                  moveSpeed = -controller.calculate(range, GOAL_RANGE_METERS);
 
           } else {
 
