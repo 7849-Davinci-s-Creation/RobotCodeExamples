@@ -5,6 +5,7 @@
 package frc.robot;
 
 import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonUtils;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
@@ -46,7 +47,7 @@ public class Robot extends TimedRobot {
     // Angle between horizontal and the camera.
 
     final double CAMERA_PITCH_RADIANS = Units.degreesToRadians(23);
-    final double GOAL_RANGE_METERS = Units.feetToMeters(1);
+    final double GOAL_RANGE_METERS = 4;
 
 
     // Change this to match the name of your camera
@@ -56,7 +57,7 @@ public class Robot extends TimedRobot {
 
     // PID constants should be tuned per robot
 
-    final double LINEAR_P = 0.04;
+    final double LINEAR_P = 1;
 
     final double LINEAR_D = 0.05;
 
@@ -144,7 +145,7 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    double moveSpeed = ps4Controller.getRightX();
+    double moveSpeed;
     double rotateSpeed;
 
      if (ps4Controller.getCrossButton()) {
@@ -162,7 +163,7 @@ public class Robot extends TimedRobot {
 
           //       // -1.0 required to ensure positive PID controller effort _increases_ yaw
 
-          rotateSpeed = -turnController.calculate(result.getBestTarget().getYaw(), 0);
+          
           
           double range = PhotonUtils.calculateDistanceToTargetMeters(
 
@@ -173,19 +174,25 @@ public class Robot extends TimedRobot {
                   CAMERA_PITCH_RADIANS,
 
                   Units.degreesToRadians(result.getBestTarget().getPitch()));
-                  moveSpeed = -controller.calculate(range, GOAL_RANGE_METERS);
+                  moveSpeed = forwardController.calculate(range, GOAL_RANGE_METERS);
+                  System.out.println(moveSpeed);
+                  rotateSpeed = -turnController.calculate(result.getBestTarget().getYaw(), 0);
 
           } else {
 
           //       // If we have no targets, stay still.
 
           rotateSpeed = 0;
+          moveSpeed = 0;
           }
           }else{
           rotateSpeed = ps4Controller.getLeftY();
+          moveSpeed = ps4Controller.getRightX();
+
               
           }
-        
+           
+
           driveType.arcadeDrive(rotateSpeed, moveSpeed);
 
   }
