@@ -6,6 +6,7 @@ import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -24,7 +25,7 @@ public class DriveTrain extends SubsystemBase {
 
     private final SysIdRoutine driveTrainRoutine = new SysIdRoutine(
             new SysIdRoutine.Config(),
-            new SysIdRoutine.Mechanism(this::sysIDVoltageDrive,null,this)
+            new SysIdRoutine.Mechanism(this::sysIDVoltageDrive,this::sysIDLog,this)
     );
 
     public DriveTrain() {
@@ -32,8 +33,25 @@ public class DriveTrain extends SubsystemBase {
         rightFollower.follow(rightLeader);
     }
 
-    public void sysIDVoltageDrive(Measure<Voltage> voltage) {
+    private void sysIDVoltageDrive(Measure<Voltage> voltage) {
         this.voltageDrive(voltage.in(Volts), voltage.in(Volts));
+    }
+
+    private void sysIDLog(SysIdRoutineLog log) {
+        SysIdRoutineLog.MotorLog leftLeader = log.motor("leftLeader");
+        SysIdRoutineLog.MotorLog rightLeader = log.motor("rightLeader");
+        SysIdRoutineLog.MotorLog leftFollower = log.motor("leftFollower");
+        SysIdRoutineLog.MotorLog rightFollower = log.motor("rightFollower");
+
+        // voltage
+        leftLeader.value("Left Leader Voltage",this.leftLeader.getBusVoltage(), "Voltage");
+        rightLeader.value("Right Leader Voltage", this.rightLeader.getBusVoltage(), "Voltage");
+        leftFollower.value("Left Follower Voltage", this.leftFollower.getBusVoltage(),"Voltage");
+        rightFollower.value("Right Follower Voltage", this.rightFollower.getBusVoltage(), "Voltage");
+
+        // encoder ticks
+        leftLeader.value("Left Leader Encoder Ticks", getLefEncoderPosition(), "Rotations");
+        rightLeader.value("Right Leader Encoder Ticks",getRightEncoderPosition(), "Rotations");
     }
 
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
