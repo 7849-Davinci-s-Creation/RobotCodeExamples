@@ -4,17 +4,40 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
+import frc.robot.commands.Autos;
+import frc.robot.commands.Drive;
+import frc.robot.subsystems.DriveTrain;
 
 public class RobotContainer {
+  private final DriveTrain driveTrain = new DriveTrain();
+  private final CommandPS4Controller controller = new CommandPS4Controller(Constants.Controllers.JOYSTICK_PORT);
+
+  private final SendableChooser<Command> autoMenu = Autos.getAutoMenu();
+
   public RobotContainer() {
     configureBindings();
+    configureAutoMenu();
   }
 
-  private void configureBindings() {}
+  private void configureBindings() {
+    driveTrain.setDefaultCommand(new Drive(controller, driveTrain));
+  }
+
+  private void configureAutoMenu() {
+    autoMenu.addOption(
+            "Drive SysId (Quasistatic Forward)", Autos.driveSysIDQuasistaticForward(driveTrain));
+    autoMenu.addOption(
+            "Drive SysId (Quasistatic Reverse)", Autos.driveSysIDQuasistaticBackwards(driveTrain));
+    autoMenu.addOption(
+            "Drive SysId (Dynamic Forward)", Autos.driveSysIDDynamicForwards(driveTrain));
+    autoMenu.addOption(
+            "Drive SysId (Dynamic Reverse)", Autos.driveSysIDDynamicBackwards(driveTrain));
+  }
 
   public Command getAutonomousCommand() {
-    return Commands.print("No autonomous command configured");
+    return autoMenu.getSelected();
   }
 }
