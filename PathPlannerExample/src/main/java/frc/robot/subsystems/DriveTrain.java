@@ -1,30 +1,52 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-
-import edu.wpi.first.wpilibj.motorcontrol.MotorController;
-import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 
+import static edu.wpi.first.units.Units.Volts;
+
 public class DriveTrain extends SubsystemBase {
-    private final CANSparkMax leftLeader = new CANSparkMax(Constants.FRONTLEFTMOTOR_PORT,MotorType.kBrushless);
+    private final CANSparkMax leftLeader = new CANSparkMax(Constants.FRONTLEFTMOTOR_PORT, MotorType.kBrushless);
     private final CANSparkMax leftFollower = new CANSparkMax(Constants.BACKLEFTMOTOR_PORT,MotorType.kBrushless);
     private final CANSparkMax rightLeader = new CANSparkMax(Constants.FRONTRIGHTMOTOR_PORT,MotorType.kBrushless);
     private final CANSparkMax rightFollower = new CANSparkMax(Constants.BACKRIGHTMOTOR_PORT,MotorType.kBrushless);
-    
-    private final MotorControllerGroup leftGroup = new MotorControllerGroup(leftLeader, leftFollower);
-    private final MotorController rightGroup = new MotorControllerGroup(rightLeader, rightFollower);
 
     private final RelativeEncoder leftEncoder = leftLeader.getEncoder();
     private final RelativeEncoder rightEncoder = leftFollower.getEncoder();
 
+    private final SysIdRoutine driveTrainRoutine = new SysIdRoutine(
+            new SysIdRoutine.Config(),
+            new SysIdRoutine.Mechanism(this::sysIDVoltageDrive,null,this)
+    );
+
     public DriveTrain() {
         leftFollower.follow(leftLeader);
         rightFollower.follow(rightLeader);
+    }
+
+    public void sysIDVoltageDrive(Measure<Voltage> voltage) {
+        this.voltageDrive(voltage.in(Volts), voltage.in(Volts));
+    }
+
+    public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+        return driveTrainRoutine.quasistatic(direction);
+    }
+
+    public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+        return driveTrainRoutine.dynamic(direction);
+    }
+
+    public void voltageDrive(double left, double right) {
+        leftLeader.set(left);
+        rightLeader.set(right);
     }
 
     /*
@@ -40,7 +62,7 @@ public class DriveTrain extends SubsystemBase {
      * -----------------
      */
     public void arcadeDrive(double rotate, double drive) {
-        // variables for determening the quadrants
+        // variables for determining the quadrants
         double maximum = Math.max(Math.abs(drive), Math.abs(rotate));
         double total = drive + rotate;
         double difference = drive - rotate;
@@ -48,19 +70,19 @@ public class DriveTrain extends SubsystemBase {
         // set speed according to the quadrant that the values are in
         if (drive >= 0) {
             if (rotate >= 0) { // quadrant 1 
-                leftGroup.set(maximum);
-                rightGroup.set(difference);
+                leftLeader.set(maximum);
+                rightLeader.set(difference);
             } else { // quadrant 2
-                leftGroup.set(total);
-                rightGroup.set(maximum);
+                leftLeader.set(total);
+                rightLeader.set(maximum);
             }
         } else { 
             if (rotate >= 0) { // quadrant 4
-                leftGroup.set(total);
-                rightGroup.set(-maximum);
+                leftLeader.set(total);
+                rightLeader.set(-maximum);
             } else { // quadrant 3
-                leftGroup.set(-maximum);
-                rightGroup.set(difference);
+                leftLeader.set(-maximum);
+                rightLeader.set(difference);
             }
         }
     }
@@ -93,20 +115,6 @@ public class DriveTrain extends SubsystemBase {
         }
         return value;
     }
-    
-    @Override
-    public void periodic() {
-        SmartDashboard.putNumber("Front Left Motor Current", leftLeader.getOutputCurrent());
-        SmartDashboard.putNumber("Back Left Motor Current", leftFollower.getOutputCurrent());
-        SmartDashboard.putNumber("Front Right Motor Current", rightLeader.getOutputCurrent());
-        SmartDashboard.putNumber("Back Right Motor Current", rightFollower.getOutputCurrent());
-
-        SmartDashboard.putNumber("Left Encoder Value (feet)", ticks2Feet(-leftEncoder.getPosition()));
-        SmartDashboard.putNumber("Right Encoder Value (feet) ", ticks2Feet(-rightEncoder.getPosition()));
-    }
-
-    public void teleOpPeriodic() {
-    }
 
     public void resetEncoders() {
         leftEncoder.setPosition(0);
@@ -120,5 +128,15 @@ public class DriveTrain extends SubsystemBase {
     public double getRightEncoderPosition() {
         return -rightEncoder.getPosition();
     }
+    
+    @Override
+    public void periodic() {
+        SmartDashboard.putNumber("Front Left Motor Current", leftLeader.getOutputCurrent());
+        SmartDashboard.putNumber("Back Left Motor Current", leftFollower.getOutputCurrent());
+        SmartDashboard.putNumber("Front Right Motor Current", rightLeader.getOutputCurrent());
+        SmartDashboard.putNumber("Back Right Motor Current", rightFollower.getOutputCurrent());
 
+        SmartDashboard.putNumber("Left Encoder Value (feet)", ticks2Feet(-leftEncoder.getPosition()));
+        SmartDashboard.putNumber("Right Encoder Value (feet) ", ticks2Feet(-rightEncoder.getPosition()));
+    }
 }
