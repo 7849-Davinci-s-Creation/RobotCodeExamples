@@ -21,6 +21,7 @@ public class RobotContainer {
   public RobotContainer() {
     configureBindings();
     configureAutoMenu();
+    driveTrain.resetEncoders();
   }
 
   private void configureBindings() {
