@@ -31,6 +31,7 @@ public class DriveTrain extends SubsystemBase {
     public DriveTrain() {
         leftFollower.follow(leftLeader);
         rightFollower.follow(rightLeader);
+        leftLeader.setInverted(true);
     }
 
     private void sysIDVoltageDrive(Measure<Voltage> voltage) {

@@ -5,6 +5,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import frc.robot.commands.Autos;
@@ -35,6 +36,8 @@ public class RobotContainer {
             "Drive SysId (Dynamic Forward)", Autos.driveSysIDDynamicForwards(driveTrain));
     autoMenu.addOption(
             "Drive SysId (Dynamic Reverse)", Autos.driveSysIDDynamicBackwards(driveTrain));
+
+    SmartDashboard.putData(autoMenu);
   }
 
   public Command getAutonomousCommand() {
