@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
+import lib.Encoderutil;
 
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -51,6 +52,12 @@ public class DriveTrain extends SubsystemBase {
         leftFollower.follow(leftLeader);
         rightFollower.follow(rightLeader);
         leftLeader.setInverted(true);
+
+        leftEncoder.setPositionConversionFactor(Encoderutil.neoEncoderLinearDistanceConversionFactorMeters(5.95, 3));
+        rightEncoder.setPositionConversionFactor(Encoderutil.neoEncoderLinearDistanceConversionFactorMeters(5.95, 3));
+
+        leftEncoder.setVelocityConversionFactor(Encoderutil.neoEncoderLinearDistanceConversionFactorMeters(5.95, 3) /  60);
+        rightEncoder.setVelocityConversionFactor(Encoderutil.neoEncoderLinearDistanceConversionFactorMeters(5.95, 3) /  60);
     }
 
     public void voltageDrive(Measure<Voltage> volts) {
@@ -108,10 +115,6 @@ public class DriveTrain extends SubsystemBase {
         }
     }
 
-    public double ticks2Feet(double encoderPosition) {
-        return encoderPosition * ((6 * Math.PI) / 71.4);
-    }
-
     // algorithm to apply curvature drive to our arcade drive
     // thanks to this guide:
     // https://compendium.readthedocs.io/en/latest/tasks/drivetrains/advancedtank.html
@@ -158,7 +161,7 @@ public class DriveTrain extends SubsystemBase {
         SmartDashboard.putNumber("Front Right Motor Current", rightLeader.getOutputCurrent());
         SmartDashboard.putNumber("Back Right Motor Current", rightFollower.getOutputCurrent());
 
-        SmartDashboard.putNumber("Left Encoder Value (feet)", ticks2Feet(-leftEncoder.getPosition()));
-        SmartDashboard.putNumber("Right Encoder Value (feet) ", ticks2Feet(-rightEncoder.getPosition()));
+        SmartDashboard.putNumber("Left Encoder Value (feet)", -leftEncoder.getPosition());
+        SmartDashboard.putNumber("Right Encoder Value (feet) ", -rightEncoder.getPosition());
     }
 }
