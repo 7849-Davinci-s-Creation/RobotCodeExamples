@@ -3,15 +3,14 @@ package frc.robot.subsystems;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-import edu.wpi.first.units.Measure;
-import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
+import org.littletonrobotics.junction.Logger;
 
+import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
 public class DriveTrain extends SubsystemBase {
@@ -23,36 +22,23 @@ public class DriveTrain extends SubsystemBase {
     private final RelativeEncoder leftEncoder = leftLeader.getEncoder();
     private final RelativeEncoder rightEncoder = leftFollower.getEncoder();
 
-    private final SysIdRoutine driveTrainRoutine = new SysIdRoutine(
-            new SysIdRoutine.Config(),
-            new SysIdRoutine.Mechanism(this::sysIDVoltageDrive,this::sysIDLog,this)
+    // Create the SysId routine
+    SysIdRoutine driveTrainRoutine = new SysIdRoutine(
+            new SysIdRoutine.Config(
+                    Volts.of(0.1).per(Seconds.of(1)), Volts.of(7), Seconds.of(10), // Use default config (NOTE: EDITED TO NOT BE SO FAST)
+                    (state) -> Logger.recordOutput("SysIdTestState", state.toString())
+            ),
+            new SysIdRoutine.Mechanism(
+                    (voltage) -> this.voltageDrive(voltage.in(Volts), voltage.in(Volts)),
+                    null, // No log consumer, since data is recorded by AdvantageKit
+                    this
+            )
     );
 
     public DriveTrain() {
         leftFollower.follow(leftLeader);
         rightFollower.follow(rightLeader);
         leftLeader.setInverted(true);
-    }
-
-    private void sysIDVoltageDrive(Measure<Voltage> voltage) {
-        this.voltageDrive(voltage.in(Volts), voltage.in(Volts));
-    }
-
-    private void sysIDLog(SysIdRoutineLog log) {
-        SysIdRoutineLog.MotorLog leftLeader = log.motor("leftLeader");
-        SysIdRoutineLog.MotorLog rightLeader = log.motor("rightLeader");
-        SysIdRoutineLog.MotorLog leftFollower = log.motor("leftFollower");
-        SysIdRoutineLog.MotorLog rightFollower = log.motor("rightFollower");
-
-        // voltage
-        leftLeader.value("Left Leader Voltage",this.leftLeader.getBusVoltage(), "Voltage");
-        rightLeader.value("Right Leader Voltage", this.rightLeader.getBusVoltage(), "Voltage");
-        leftFollower.value("Left Follower Voltage", this.leftFollower.getBusVoltage(),"Voltage");
-        rightFollower.value("Right Follower Voltage", this.rightFollower.getBusVoltage(), "Voltage");
-
-        // encoder ticks
-        leftLeader.value("Left Leader Encoder Ticks", getLefEncoderPosition(), "Rotations");
-        rightLeader.value("Right Leader Encoder Ticks",getRightEncoderPosition(), "Rotations");
     }
 
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
