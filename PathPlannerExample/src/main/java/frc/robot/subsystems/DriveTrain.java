@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.CANSparkBase.IdleMode;
 
 import edu.wpi.first.units.Distance;
 import edu.wpi.first.units.Measure;
@@ -37,8 +38,8 @@ public class DriveTrain extends SubsystemBase {
     private final MutableMeasure<Velocity<Distance>> velocity = MutableMeasure.mutable(MetersPerSecond.of(0));
 
     SysIdRoutine.Config config = new SysIdRoutine.Config(Volts.of(0.1).per(Seconds.of(1)),
-            Volts.of(2),
-            Seconds.of(5),
+            Volts.of(1),
+            Seconds.of(1),
             null);
 
     SysIdRoutine.Mechanism mechanism = new SysIdRoutine.Mechanism(
@@ -52,6 +53,11 @@ public class DriveTrain extends SubsystemBase {
         leftFollower.follow(leftLeader);
         rightFollower.follow(rightLeader);
         leftLeader.setInverted(true);
+
+        leftLeader.setIdleMode(IdleMode.kBrake);
+        rightLeader.setIdleMode(IdleMode.kBrake);
+        leftFollower.setIdleMode(IdleMode.kBrake);
+        rightFollower.setIdleMode(IdleMode.kBrake);
 
         leftEncoder.setPositionConversionFactor(Encoderutil.neoEncoderLinearDistanceConversionFactorMeters(5.95, 3));
         rightEncoder.setPositionConversionFactor(Encoderutil.neoEncoderLinearDistanceConversionFactorMeters(5.95, 3));
