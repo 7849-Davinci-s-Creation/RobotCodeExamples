@@ -67,8 +67,8 @@ public class DriveTrain extends SubsystemBase {
     }
 
     public void voltageDrive(Measure<Voltage> volts) {
-        leftLeader.set(volts.in(Volts));
-        rightLeader.set(volts.in(Volts));
+        leftLeader.setVoltage(volts.in(Volts));
+        rightLeader.setVoltage(volts.in(Volts));
     }
 
     public void log(SysIdRoutineLog log) {
