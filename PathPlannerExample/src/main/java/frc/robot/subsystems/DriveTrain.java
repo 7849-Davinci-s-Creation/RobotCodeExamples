@@ -62,8 +62,10 @@ public class DriveTrain extends SubsystemBase {
         leftEncoder.setPositionConversionFactor(Encoderutil.neoEncoderLinearDistanceConversionFactorMeters(5.95, 3));
         rightEncoder.setPositionConversionFactor(Encoderutil.neoEncoderLinearDistanceConversionFactorMeters(5.95, 3));
 
-        leftEncoder.setVelocityConversionFactor(Encoderutil.neoEncoderLinearDistanceConversionFactorMeters(5.95, 3) /  60);
-        rightEncoder.setVelocityConversionFactor(Encoderutil.neoEncoderLinearDistanceConversionFactorMeters(5.95, 3) /  60);
+        leftEncoder
+                .setVelocityConversionFactor(Encoderutil.neoEncoderLinearDistanceConversionFactorMeters(5.95, 3) / 60);
+        rightEncoder
+                .setVelocityConversionFactor(Encoderutil.neoEncoderLinearDistanceConversionFactorMeters(5.95, 3) / 60);
     }
 
     public void voltageDrive(Measure<Voltage> volts) {
@@ -72,19 +74,20 @@ public class DriveTrain extends SubsystemBase {
     }
 
     public void log(SysIdRoutineLog log) {
-        // log left motors
-        log.motor("left-motors")
-                .voltage(appliedVoltage.mut_replace(
-                                leftLeader.get() * RobotController.getBatteryVoltage(), Volts))
-                .linearPosition(distance.mut_replace(leftEncoder.getPosition(), Meters))
-                .linearVelocity(velocity.mut_replace(leftEncoder.getVelocity(), MetersPerSecond));
+        int numberOfEntries = 2;
+        double averageVoltage = ((leftLeader.get() * RobotController.getBatteryVoltage()) +
+                (rightLeader.get() * RobotController.getBatteryVoltage()))
+                / numberOfEntries;
 
-        // log right motors
-        log.motor("right-motors")
-                .voltage(appliedVoltage.mut_replace(
-                                rightLeader.get() * RobotController.getBatteryVoltage(), Volts))
-                .linearPosition(distance.mut_replace(rightEncoder.getPosition(), Meters))
-                .linearVelocity(velocity.mut_replace(rightEncoder.getVelocity(), MetersPerSecond));
+        double averageLinearPosition = (getLefEncoderPosition() + getRightEncoderPosition()) / numberOfEntries;
+
+        double averageLinearVelocity = (-leftEncoder.getVelocity() + -rightEncoder.getVelocity()) / numberOfEntries;
+
+        // drivetrain
+        log.motor("drivetrain")
+                .voltage(appliedVoltage.mut_replace(averageVoltage, Volts))
+                .linearPosition(distance.mut_replace(averageLinearPosition, Meters))
+                .linearVelocity(velocity.mut_replace(averageLinearVelocity, MetersPerSecond));
     }
 
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
