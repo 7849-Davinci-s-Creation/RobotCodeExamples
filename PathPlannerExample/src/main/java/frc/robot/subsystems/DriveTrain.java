@@ -37,7 +37,7 @@ public class DriveTrain extends SubsystemBase {
     private final MutableMeasure<Distance> distance = MutableMeasure.mutable(Meters.of(0));
     private final MutableMeasure<Velocity<Distance>> velocity = MutableMeasure.mutable(MetersPerSecond.of(0));
 
-    SysIdRoutine.Config config = new SysIdRoutine.Config(Volts.of(2).per(Seconds.of(1)),
+    SysIdRoutine.Config config = new SysIdRoutine.Config(Volts.of(3).per(Seconds.of(1)),
             Volts.of(3),
             Seconds.of(3),
             null);
