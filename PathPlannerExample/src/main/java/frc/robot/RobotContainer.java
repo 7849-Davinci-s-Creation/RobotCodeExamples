@@ -44,4 +44,8 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     return autoMenu.getSelected();
   }
+
+  public void autonomousInit() {
+    driveTrain.resetMotors();
+  }
 }

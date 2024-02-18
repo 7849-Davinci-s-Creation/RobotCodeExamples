@@ -1,28 +1,19 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.CANSparkBase.IdleMode;
-
-import edu.wpi.first.units.Distance;
-import edu.wpi.first.units.Measure;
-import edu.wpi.first.units.MutableMeasure;
-import edu.wpi.first.units.Velocity;
-import edu.wpi.first.units.Voltage;
-import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import lib.Encoderutil;
+import org.littletonrobotics.junction.Logger;
 
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.Seconds;
-import static edu.wpi.first.units.Units.Volts;
+import static edu.wpi.first.units.Units.*;
 
 public class DriveTrain extends SubsystemBase {
     private final CANSparkMax leftLeader = new CANSparkMax(Constants.FRONTLEFTMOTOR_PORT, MotorType.kBrushless);
@@ -33,18 +24,15 @@ public class DriveTrain extends SubsystemBase {
     private final RelativeEncoder leftEncoder = leftLeader.getEncoder();
     private final RelativeEncoder rightEncoder = leftFollower.getEncoder();
 
-    private final MutableMeasure<Voltage> appliedVoltage = MutableMeasure.mutable(Volts.of(0));
-    private final MutableMeasure<Distance> distance = MutableMeasure.mutable(Meters.of(0));
-    private final MutableMeasure<Velocity<Distance>> velocity = MutableMeasure.mutable(MetersPerSecond.of(0));
-
     SysIdRoutine.Config config = new SysIdRoutine.Config(Volts.of(3).per(Seconds.of(1)),
             Volts.of(3),
             Seconds.of(3),
-            null);
+            state -> Logger.recordOutput("SysIdTestState", state.toString())
+    );
 
     SysIdRoutine.Mechanism mechanism = new SysIdRoutine.Mechanism(
             this::voltageDrive,
-            this::log,
+            null,
             this);
 
     SysIdRoutine driveTrainRoutine = new SysIdRoutine(config, mechanism);
@@ -71,23 +59,6 @@ public class DriveTrain extends SubsystemBase {
     public void voltageDrive(Measure<Voltage> volts) {
         leftLeader.setVoltage(volts.in(Volts));
         rightLeader.setVoltage(volts.in(Volts));
-    }
-
-    public void log(SysIdRoutineLog log) {
-        int numberOfEntries = 2;
-        double averageVoltage = ((leftLeader.get() * RobotController.getBatteryVoltage()) +
-                (rightLeader.get() * RobotController.getBatteryVoltage()))
-                / numberOfEntries;
-
-        double averageLinearPosition = (getLefEncoderPosition() + getRightEncoderPosition()) / numberOfEntries;
-
-        double averageLinearVelocity = (-leftEncoder.getVelocity() + -rightEncoder.getVelocity()) / numberOfEntries;
-
-        // drivetrain
-        log.motor("drivetrain")
-                .voltage(appliedVoltage.mut_replace(averageVoltage, Volts))
-                .linearPosition(distance.mut_replace(averageLinearPosition, Meters))
-                .linearVelocity(velocity.mut_replace(averageLinearVelocity, MetersPerSecond));
     }
 
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
@@ -153,6 +124,10 @@ public class DriveTrain extends SubsystemBase {
     public void resetEncoders() {
         leftEncoder.setPosition(0);
         rightEncoder.setPosition(0);
+    }
+
+    public void resetMotors() {
+        this.voltageDrive(Volts.of(0));
     }
 
     public double getLefEncoderPosition() {
