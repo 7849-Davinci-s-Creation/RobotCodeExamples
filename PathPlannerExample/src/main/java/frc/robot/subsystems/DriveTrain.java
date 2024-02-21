@@ -88,6 +88,11 @@ public class DriveTrain extends SubsystemBase {
         rightLeader.setVoltage(volts.in(Volts));
     }
 
+    public void voltageDrive(double rightVolts, double leftVolts) {
+        leftLeader.setVoltage(leftVolts);
+        rightLeader.setVoltage(rightVolts);
+    }
+
     public void log(SysIdRoutineLog log) {
         int numberOfEntries = 2;
         double averageVoltage = ((leftLeader.getAppliedOutput() * leftLeader.getBusVoltage()) +
@@ -198,6 +203,14 @@ public class DriveTrain extends SubsystemBase {
     public DifferentialDriveWheelSpeeds getWheelSpeeds() {
         return new DifferentialDriveWheelSpeeds(leftEncoder.getVelocity(), rightEncoder.getVelocity());
 
+    }
+
+    public void setMaxOutput(double maxOutput) {
+        
+    }
+
+    public double getAverageEncoderDistance() {
+        return ((leftEncoder.getPosition() + rightEncoder.getPosition())/2);
     }
 
     @Override
