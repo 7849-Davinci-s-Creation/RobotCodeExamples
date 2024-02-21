@@ -1,16 +1,22 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkLowLevel.MotorType;
+import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkBase.IdleMode;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
+import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.units.Distance;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.MutableMeasure;
 import edu.wpi.first.units.Velocity;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -33,6 +39,9 @@ public class DriveTrain extends SubsystemBase {
     private final RelativeEncoder leftEncoder = leftLeader.getEncoder();
     private final RelativeEncoder rightEncoder = leftFollower.getEncoder();
 
+    private final AHRS navX = new AHRS(SPI.Port.kMXP);
+    private final DifferentialDriveOdometry odometry;
+
     private final MutableMeasure<Voltage> appliedVoltage = MutableMeasure.mutable(Volts.of(0));
     private final MutableMeasure<Distance> distance = MutableMeasure.mutable(Meters.of(0));
     private final MutableMeasure<Velocity<Distance>> velocity = MutableMeasure.mutable(MetersPerSecond.of(0));
@@ -50,6 +59,9 @@ public class DriveTrain extends SubsystemBase {
     SysIdRoutine driveTrainRoutine = new SysIdRoutine(config, mechanism);
 
     public DriveTrain() {
+        navX.reset();
+        resetEncoders();
+
         leftFollower.follow(leftLeader);
         rightFollower.follow(rightLeader);
         leftLeader.setInverted(true);
@@ -58,6 +70,9 @@ public class DriveTrain extends SubsystemBase {
         rightLeader.setIdleMode(IdleMode.kBrake);
         leftFollower.setIdleMode(IdleMode.kBrake);
         rightFollower.setIdleMode(IdleMode.kBrake);
+
+        odometry = new DifferentialDriveOdometry(navX.getRotation2d(), leftEncoder.getPosition(),
+                rightEncoder.getPosition());
 
         leftEncoder.setPositionConversionFactor(Encoderutil.neoEncoderLinearDistanceConversionFactorMeters(5.95, 3));
         rightEncoder.setPositionConversionFactor(Encoderutil.neoEncoderLinearDistanceConversionFactorMeters(5.95, 3));
@@ -76,12 +91,11 @@ public class DriveTrain extends SubsystemBase {
     public void log(SysIdRoutineLog log) {
         int numberOfEntries = 2;
         double averageVoltage = ((leftLeader.getAppliedOutput() * leftLeader.getBusVoltage()) +
-                (rightLeader.getAppliedOutput() * rightLeader.getBusVoltage())
-        )/ numberOfEntries;
+                (rightLeader.getAppliedOutput() * rightLeader.getBusVoltage())) / numberOfEntries;
 
         double averageLinearPosition = (getLefEncoderPosition() + getRightEncoderPosition()) / numberOfEntries;
 
-        double averageLinearVelocity = (-leftEncoder.getVelocity() + -rightEncoder.getVelocity()) / numberOfEntries;
+        double averageLinearVelocity = (leftEncoder.getVelocity() + rightEncoder.getVelocity()) / numberOfEntries;
 
         // drivetrain
         log.motor("drivetrain")
@@ -163,12 +177,33 @@ public class DriveTrain extends SubsystemBase {
         return -rightEncoder.getPosition();
     }
 
+    public double getHeading() {
+        return navX.getRotation2d().getDegrees();
+    }
+
+    public double getTurnRate() {
+        return -navX.getRate();
+    }
+
+    public Pose2d getPose2d() {
+        return odometry.getPoseMeters();
+    }
+
+    public void resetOdometry(Pose2d pose) {
+        resetEncoders();
+        odometry.resetPosition(navX.getRotation2d(), leftEncoder.getPosition(), rightEncoder.getPosition(),
+                new Pose2d());
+    }
+
+    public DifferentialDriveWheelSpeeds getWheelSpeeds() {
+        return new DifferentialDriveWheelSpeeds(leftEncoder.getVelocity(), rightEncoder.getVelocity());
+
+    }
+
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("Front Left Motor Current", leftLeader.getOutputCurrent());
-        SmartDashboard.putNumber("Back Left Motor Current", leftFollower.getOutputCurrent());
-        SmartDashboard.putNumber("Front Right Motor Current", rightLeader.getOutputCurrent());
-        SmartDashboard.putNumber("Back Right Motor Current", rightFollower.getOutputCurrent());
+        odometry.update(navX.getRotation2d(), leftEncoder.getPosition(), rightEncoder.getPosition());
+        SmartDashboard.putNumber("Gyro Heading", getHeading());
 
         SmartDashboard.putNumber("Left Encoder Value (feet)", -leftEncoder.getPosition());
         SmartDashboard.putNumber("Right Encoder Value (feet) ", -rightEncoder.getPosition());
