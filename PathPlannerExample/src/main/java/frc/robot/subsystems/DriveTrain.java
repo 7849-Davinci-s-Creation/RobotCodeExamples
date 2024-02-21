@@ -75,9 +75,9 @@ public class DriveTrain extends SubsystemBase {
 
     public void log(SysIdRoutineLog log) {
         int numberOfEntries = 2;
-        double averageVoltage = ((leftLeader.get() * RobotController.getBatteryVoltage()) +
-                (rightLeader.get() * RobotController.getBatteryVoltage()))
-                / numberOfEntries;
+        double averageVoltage = ((leftLeader.getAppliedOutput() * leftLeader.getBusVoltage()) +
+                (rightLeader.getAppliedOutput() * rightLeader.getBusVoltage())
+        )/ numberOfEntries;
 
         double averageLinearPosition = (getLefEncoderPosition() + getRightEncoderPosition()) / numberOfEntries;
 
