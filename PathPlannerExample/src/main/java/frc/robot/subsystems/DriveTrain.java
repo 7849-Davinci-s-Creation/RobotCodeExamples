@@ -1,6 +1,8 @@
 package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.util.ReplanningConfig;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
@@ -9,6 +11,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.units.*;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog;
@@ -65,13 +68,29 @@ public class DriveTrain extends SubsystemBase {
         odometry = new DifferentialDriveOdometry(navX.getRotation2d(), getLefEncoderPosition(),
                 getRightEncoderPosition());
 
-        leftEncoder.setPositionConversionFactor(Encoderutil.neoEncoderLinearDistanceConversionFactorMeters(5.95, 3));
-        rightEncoder.setPositionConversionFactor(Encoderutil.neoEncoderLinearDistanceConversionFactorMeters(5.95, 3));
+        leftEncoder.setPositionConversionFactor(Constants.kLinearConversion);
+        rightEncoder.setPositionConversionFactor(Constants.kLinearConversion);
 
         leftEncoder
-                .setVelocityConversionFactor(Encoderutil.neoEncoderLinearDistanceConversionFactorMeters(5.95, 3) / 60);
+                .setVelocityConversionFactor(Constants.kLinearConversion / 60);
         rightEncoder
-                .setVelocityConversionFactor(Encoderutil.neoEncoderLinearDistanceConversionFactorMeters(5.95, 3) / 60);
+                .setVelocityConversionFactor(Constants.kLinearConversion / 60);
+
+        AutoBuilder.configureRamsete(
+            this::getPose,
+            this::resetOdometry,
+            this::getWheelSpeeds,
+            this::voltageDrive:,
+            new ReplanningConfig(),
+            () -> {
+                var alliance = DriverStation.getAlliance();
+                if(alliance.isPresent()) {
+                    return alliance.get() == DriverStation.Alliance.Blue;
+                }
+                return false;
+            },
+            this
+        );
     }
 
     public void voltageDrive(Measure<Voltage> volts) {
@@ -162,11 +181,11 @@ public class DriveTrain extends SubsystemBase {
     }
 
     public double getLefEncoderPosition() {
-        return -leftEncoder.getPosition();
+        return leftEncoder.getPosition();
     }
 
     public double getRightEncoderPosition() {
-        return -rightEncoder.getPosition();
+        return rightEncoder.getPosition();
     }
 
     public double getHeading() {
@@ -197,6 +216,10 @@ public class DriveTrain extends SubsystemBase {
 
     public double getAverageEncoderDistance() {
         return (getLefEncoderPosition() + getRightEncoderPosition()) / 2;
+    }
+
+    public void zeroHeader() {
+        navX.reset();
     }
 
     @Override

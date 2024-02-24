@@ -1,6 +1,7 @@
 package frc.robot;
 
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
+import edu.wpi.first.math.util.Units;
 
 public final class Constants {
     public static final int FRONTLEFTMOTOR_PORT = 2;
@@ -27,6 +28,10 @@ public final class Constants {
     public static final double RamsetZ = 0.7;
     public static final double gearRatio = 5.95;
     public static final double wheelRadiusInches = 3;
+
+    public static final double kLinearConversion = Units.inchesToMeters(
+        1/(gearRatio * 2 * Math.PI * Units.inchesToMeters(wheelRadiusInches)) * 10)
+        ;
     
 
     public static final double TORQUE_RESISTANCE_THRESHOLD = 0.05F;
