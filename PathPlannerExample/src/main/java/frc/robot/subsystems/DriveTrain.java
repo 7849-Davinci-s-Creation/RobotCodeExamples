@@ -237,7 +237,7 @@ public class DriveTrain extends SubsystemBase {
 
     @Override
     public void periodic() {
-        odometry.update(navX.getRotation2d(), getLefEncoderPosition(), getRightEncoderPosition());
+        //odometry.update(navX.getRotation2d(), getLefEncoderPosition(), getRightEncoderPosition());
 
         SmartDashboard.putNumber("Gyro Heading", getHeading());
         SmartDashboard.putNumber("Left Encoder Value (feet)", getLefEncoderPosition());

@@ -37,6 +37,7 @@ public class RobotContainer {
             "Drive SysId (Dynamic Forward)", Autos.driveSysIDDynamicForwards(driveTrain));
     autoMenu.addOption(
             "Drive SysId (Dynamic Reverse)", Autos.driveSysIDDynamicBackwards(driveTrain));
+    autoMenu.addOption("cool auto pathplaner", Autos.pathPlannerTest());
 
     SmartDashboard.putData(autoMenu);
   }

@@ -4,6 +4,8 @@
 
 package frc.robot.commands;
 
+import com.pathplanner.lib.commands.PathPlannerAuto;
+
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -21,6 +23,10 @@ public final class Autos {
       autoMenu = new SendableChooser<>();
     }
     return autoMenu;
+  }
+
+  public static Command pathPlannerTest() {
+    return new PathPlannerAuto("Simple Auto");
   }
 
   public static Command driveSysIDQuasistaticForward(DriveTrain driveTrain) {
