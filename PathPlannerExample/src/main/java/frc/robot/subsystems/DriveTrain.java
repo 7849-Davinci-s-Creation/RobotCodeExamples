@@ -7,12 +7,17 @@ import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
+
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive.WheelSpeeds;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -77,10 +82,10 @@ public class DriveTrain extends SubsystemBase {
                 .setVelocityConversionFactor(Constants.kLinearConversion / 60);
 
         AutoBuilder.configureRamsete(
-            this::getPose,
+            this::getPose2d,
             this::resetOdometry,
             this::getWheelSpeeds,
-            this::voltageDrive:,
+            this::pathDrive,
             new ReplanningConfig(),
             () -> {
                 var alliance = DriverStation.getAlliance();
@@ -98,9 +103,15 @@ public class DriveTrain extends SubsystemBase {
         rightLeader.setVoltage(volts.in(Volts));
     }
 
-    public void voltageDrive(double rightVolts, double leftVolts) {
-        leftLeader.setVoltage(leftVolts);
-        rightLeader.setVoltage(rightVolts);
+    public void pathDrive(ChassisSpeeds speeds) {
+        DifferentialDriveWheelSpeeds wheelSpeeds = Constants.drivekinematics.toWheelSpeeds(speeds);
+        SimpleMotorFeedforward feeder = new SimpleMotorFeedforward(Constants.SysIDvalues.KS, Constants.SysIDvalues.KV);
+
+        double leftRadPerSeconds = wheelSpeeds.leftMetersPerSecond / Units.inchesToMeters(Constants.wheelRadiusInches);
+        double rightRadPerSeconds = wheelSpeeds.rightMetersPerSecond / Units.inchesToMeters(Constants.wheelRadiusInches);
+
+        leftLeader.setVoltage(feeder.calculate(leftRadPerSeconds));
+        rightLeader.setVoltage(feeder.calculate(rightRadPerSeconds));
     }
 
     public void log(SysIdRoutineLog log) {
@@ -206,8 +217,10 @@ public class DriveTrain extends SubsystemBase {
                 pose);
     }
 
-    public DifferentialDriveWheelSpeeds getWheelSpeeds() {
-        return new DifferentialDriveWheelSpeeds(leftEncoder.getVelocity(), rightEncoder.getVelocity());
+    public ChassisSpeeds getWheelSpeeds() {
+        return Constants.drivekinematics.toChassisSpeeds(
+            new DifferentialDriveWheelSpeeds(
+                leftEncoder.getVelocity(), rightEncoder.getVelocity()));
     }
 
     public void setMaxOutput(double maxOutput) {
